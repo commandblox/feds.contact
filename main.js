@@ -1,6 +1,30 @@
+/**
+ * Converts degree to radians
+ * @param degree
+ * @returns {number}
+ */
+var toRadians = function (degree) {
+    return degree * (Math.PI / 180);
+};
+
+/**
+ * Converts radian to degree
+ * @param radians
+ * @returns {number}
+ */
+var toDegree = function (radians) {
+    return radians * (180 / Math.PI);
+}
+
+function isTouchDevice() {
+    return (('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints > 0));
+}
+
 async function main(ev) {
     
-    const isTouch = 'ontouchstart' in document.documentElement;
+    
 
     const boing = document.getElementById("boing");
     var xvel = 50;
@@ -21,6 +45,8 @@ async function main(ev) {
     var fric = 0.6;
     var tinyBounceThreshold = 8;
 
+    var fallAngle = 0;
+
     var mouseDown = (ev) => {
         if (ev.button != 0) return;
         
@@ -37,6 +63,7 @@ async function main(ev) {
 
         lastMouseClickTimestamp = null;
         timeSinceLastMouseClick = null;
+        
         boing.style.cursor = "grab";
     }
 
@@ -44,14 +71,21 @@ async function main(ev) {
         mouseX = ev.pageX;
         mouseY = ev.pageY;
     }
-    if (isTouch) {
-        document.ontouchstart = mouseDown;
-        document.ontouchend = document.ontouchcancel = mouseUp;
-        document.ontouchmove = mouseMove
+
+    var deviceOrientation = (ev) => {
+        fallAngle = toRadians(ev.beta - 90);
+    }
+
+    document.addEventListener('deviceorientation', deviceOrientation, true);
+    if (isTouchDevice()) {
+        document.addEventListener('touchstart',  mouseDown);
+        document.addEventListener('touchend',    mouseUp);
+        document.addEventListener('touchcancel', mouseUp);
+        document.addEventListener('touchmove',   mouseMove);
     } else {
-        document.onmousedown = mouseDown;
-        document.onmouseup = mouseUp;
-        document.onmousemove = mouseMove;
+        document.addEventListener('mousedown', mouseDown);
+        document.addEventListener('mouseup',   mouseUp);
+        document.addEventListener('mousemove', mouseMove);
     }
 
     setInterval(() => {
@@ -61,7 +95,8 @@ async function main(ev) {
             newX += xvel;
             newY += yvel;
 
-            yvel += gravity;
+            xvel += Math.sin(fallAngle) * gravity;
+            yvel += Math.cos(fallAngle) * gravity;
         } else {
             var now = Date.now()
             var t_mouseX = mouseX;
