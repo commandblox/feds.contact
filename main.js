@@ -1,4 +1,7 @@
 async function main(ev) {
+    
+    const isTouch = 'ontouchstart' in document.documentElement;
+
     const boing = document.getElementById("boing");
     var xvel = 50;
     var yvel = 50;
@@ -18,26 +21,37 @@ async function main(ev) {
     var fric = 0.6;
     var tinyBounceThreshold = 8;
 
-    document.onmousedown = (ev) => {
+    var mouseDown = (ev) => {
         if (ev.button != 0) return;
         
         if (boing.offsetLeft <= ev.pageX && ev.pageX <= boing.offsetLeft + boing.offsetWidth 
             && boing.offsetTop <= ev.pageY && ev.pageY <= boing.offsetTop + boing.offsetHeight) {
             lastMouseClickX = ev.pageX;
             lastMouseClickY = ev.pageY;
+            boing.style.cursor = "grabbing";
         }
     }
-    document.onmouseup = (ev) => {
+    var mouseUp = (ev) => {
         lastMouseClickX = null;
         lastMouseClickY = null;
 
         lastMouseClickTimestamp = null;
         timeSinceLastMouseClick = null;
+        boing.style.cursor = "grab";
     }
 
-    document.onmousemove = (ev) => {
+    var mouseMove = (ev) => {
         mouseX = ev.pageX;
         mouseY = ev.pageY;
+    }
+    if (isTouch) {
+        document.ontouchstart = mouseDown;
+        document.ontouchend = document.ontouchcancel = mouseUp;
+        document.ontouchmove = mouseMove
+    } else {
+        document.onmousedown = mouseDown;
+        document.onmouseup = mouseUp;
+        document.onmousemove = mouseMove;
     }
 
     setInterval(() => {
